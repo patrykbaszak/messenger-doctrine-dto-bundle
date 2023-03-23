@@ -2,33 +2,34 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Application\Entity;
+namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity;
 
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'posts')]
 class Post
 {
     #[ORM\Id]
-    #[ORM\Column(type: "uuid")]
+    #[ORM\Column(type: 'uuid')]
     public string $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     public User $author;
 
-    #[ORM\Column(type: "text")]
+    #[ORM\Column(type: 'text')]
     public string $content;
-    
-    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: "post")]
+
+    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'post')]
     public Collection $likes;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: 'datetime')]
     public \DateTimeInterface $createdAt;
 
-    #[ORM\Column(type: "datetime", nullable: true)]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     public ?\DateTimeInterface $modifiedAt = null;
 
     public function __construct(User $author, string $content)

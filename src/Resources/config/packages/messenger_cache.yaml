@@ -1,0 +1,18 @@
+framework:
+    cache:
+        pools:
+            messenger_doctrine_dto.mapper:
+                adapter: messenger_doctrine_dto.cache.adapter.php_files
+
+messenger_cache:
+    pools:
+        messenger_doctrine_dto.mapper: messenger_doctrine_dto.mapper
+
+services:
+    messenger_doctrine_dto.cache.adapter.php_files:
+        class: Symfony\Component\Cache\Adapter\PhpFilesAdapter
+        arguments:
+            - messenger_doctrine_dto.mapper
+            - 0
+            - null
+            - true

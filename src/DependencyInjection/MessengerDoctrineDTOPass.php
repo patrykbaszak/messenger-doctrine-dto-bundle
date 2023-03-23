@@ -11,6 +11,5 @@ class MessengerDoctrineDTOPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        //
     }
 }

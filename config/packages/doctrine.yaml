@@ -17,8 +17,8 @@ doctrine:
         mappings:
             App:
                 is_bundle: false
-                dir: '%kernel.project_dir%/tests/Application/Entity'
-                prefix: 'PBaszak\MessengerDoctrineDTOBundle\Tests\Application\Entity'
+                dir: '%kernel.project_dir%/tests/Helper/Application/Entity'
+                prefix: 'PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity'
                 alias: App
                 type: attribute
 

@@ -2,36 +2,37 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Application\Entity;
+namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
+#[ORM\Table(name: 'likes')]
 class Like
 {
     #[ORM\Id]
-    #[ORM\Column(type: "uuid")]
+    #[ORM\Column(type: 'uuid')]
     public string $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     public User $user;
 
-    #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: "likes")]
+    #[ORM\ManyToOne(targetEntity: Post::class, inversedBy: 'likes')]
     #[ORM\JoinColumn(nullable: true)]
     public ?Post $post = null;
 
-    #[ORM\ManyToOne(targetEntity: Comment::class, inversedBy: "likes")]
+    #[ORM\ManyToOne(targetEntity: Comment::class, inversedBy: 'likes')]
     #[ORM\JoinColumn(nullable: true)]
     public ?Comment $comment = null;
 
-    #[ORM\Column(type: "datetime")]
+    #[ORM\Column(type: 'datetime')]
     public \DateTimeInterface $createdAt;
 
     public function __construct(User $user, Post $post = null, Comment $comment = null)
     {
-        if ($post === null && $comment === null) {
+        if (null === $post && null === $comment) {
             throw new \InvalidArgumentException('Both `post` and `comment` cannot be null.');
         }
         if ($post && $comment) {

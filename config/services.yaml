@@ -1,8 +1,10 @@
 framework:
     handle_all_throwables: true
+    http_method_override: false
     php_errors:
         log: true
     secret: '%env(APP_SECRET)%'
+    test: true
 
 parameters:
     db_schema: '%env(string:POSTGRES_SCHEMA)%'
@@ -12,8 +14,17 @@ services:
         autowire: true      
         autoconfigure: true 
 
-    PBaszak\MessengerDoctrineDTOBundle\Tests\:
-        resource: '../tests/'
+    PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\:
+        resource: '../tests/Helper/'
         exclude:
-            - '../tests/Application/Entity/'
-            - '../tests/Kernel.php'
+            - '../tests/Helper/Application/Entity/'
+            - '../tests/Helper/Kernel.php'
+
+    messenger_doctrine_dto.cache.adapter.php_files:
+        class: Symfony\Component\Cache\Adapter\PhpFilesAdapter
+        public: true
+        arguments:
+            - messenger_doctrine_dto.mapper
+            - 0
+            - null
+            - true

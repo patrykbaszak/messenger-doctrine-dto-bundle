@@ -38,6 +38,8 @@ services:
             - './docker/app/nginx/sites-enabled:/etc/nginx/sites-enabled'
             - './docker/app/nginx/sites-available:/etc/nginx/sites-available'
         working_dir: /app
+        env_file:
+            - .env.local
         environment:
             POSTGRES_USER: $APP_DB_USER
             POSTGRES_DB: $APP_DB_NAME
