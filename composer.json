@@ -54,7 +54,7 @@
         }
     },
     "scripts": {
-        "cache:clear": "bin/console cache:clear",
+        "cache:clear": "bin/console cache:clear && rm -rf /tmp/symfony-cache",
         "code:fix": "vendor/bin/php-cs-fixer fix",
         "code:analyse": "vendor/bin/phpstan analyse src -c tools/phpstan/fpm-config.neon",
         "code:analyse:b": "vendor/bin/phpstan analyse src -c tools/phpstan/fpm-config.neon --generate-baseline tools/phpstan/fpm-baseline.neon --allow-empty-baseline",

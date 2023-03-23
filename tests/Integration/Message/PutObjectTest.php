@@ -7,6 +7,7 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Integration\Message;
 use Doctrine\ORM\EntityManagerInterface;
 use PBaszak\MessengerDoctrineDTOBundle\Message\PutObject;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\DTO\UserRegistrationData;
+use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\DTO\UserUpdateData;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\HandleTrait;
@@ -38,6 +39,26 @@ class PutObjectTest extends KernelTestCase
 
         $repo = $this->_em->getRepository(User::class);
         $this->assertSame($entity, $repo->find($entity->id));
+        $this->_em->getConnection()->rollBack();
+    }
+
+    /** @test */
+    public function testUpdatePutObject(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $dto = new UserRegistrationData('test@test.eu', 'password');
+        $message = new PutObject($dto);
+        $entity = $this->handle($message);
+        $repo = $this->_em->getRepository(User::class);
+        $this->assertSame($entity, $repo->find($entity->id));
+
+        $dto = new UserUpdateData('test2@example.com');
+        $message = new PutObject($dto, $entity->id);
+        $entity = $this->handle($message);
+
+        $this->assertSame($dto->email, $entity->email);
+        $this->assertNotEmpty($entity->passwordHash);
+
         $this->_em->getConnection()->rollBack();
     }
 }

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Utils\Mapper;
 
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertiesIfNull;
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertyIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetProperty;
+use ReflectionProperty;
 
 class EntityMapperExpressionBuilder
 {
@@ -138,12 +141,29 @@ class EntityMapperExpressionBuilder
         }
 
         $getterExpression = $this->getGetterExpression($sourceVariableName, $sourceArgument);
+        $setterExpression = $this->getSetterExpression($getterExpression, $targetVariableName, $targetArgument);
+        $constructorExpression = $this->getSetterExpression($getterExpression, $this->targetArgumentsVariableName, $targetArgument);
+
+        $ignoreProperty = false;
+        if ($sourceArgument instanceof ReflectionProperty) {
+            if (!empty($ignorePropertiesIfNull = $sourceArgument->getDeclaringClass()->getAttributes(IgnorePropertiesIfNull::class))) {
+                $ignoreProperty = $ignorePropertiesIfNull[0]->newInstance()->ignore;
+            }
+            if (!empty($ignorePropertyIfNull = $sourceArgument->getAttributes(IgnorePropertyIfNull::class))) {
+                $ignoreProperty = $ignorePropertyIfNull[0]->newInstance()->ignore;
+            }
+        }
+
+        if ($ignoreProperty) {
+            $setterExpression = sprintf('if (null !== %s) { %s }', $getterExpression, $setterExpression);
+            $constructorExpression = sprintf('if (null !== %s) { %s }', $getterExpression, $constructorExpression);
+        }
 
         return new ArgumentExpressions(
             is_string($sourceArgument) || null ? $sourceArgument : $sourceArgument->getName(),
             is_string($targetArgument) || null ? $targetArgument : $targetArgument->getName(),
-            $this->getSetterExpression($getterExpression, $targetVariableName, $targetArgument),
-            $this->getSetterExpression($getterExpression, $this->targetArgumentsVariableName, $targetArgument),
+            $setterExpression,
+            $constructorExpression,
         );
     }
 
@@ -246,10 +266,10 @@ class EntityMapperExpressionBuilder
 class ArgumentExpressions
 {
     public function __construct(
-        public readonly ?string $nameInSource,
-        public readonly ?string $nameInTarget,
-        public readonly string $setterExpression,
-        public readonly string $constructorExpression,
+        public ?string $nameInSource,
+        public ?string $nameInTarget,
+        public string $setterExpression,
+        public string $constructorExpression,
     ) {
     }
 }
