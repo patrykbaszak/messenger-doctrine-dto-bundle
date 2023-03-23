@@ -7,7 +7,6 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Utils\Mapper;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertiesIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertyIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetProperty;
-use ReflectionProperty;
 
 class EntityMapperExpressionBuilder
 {
@@ -28,6 +27,10 @@ class EntityMapperExpressionBuilder
     private \ReflectionClass $targetReflection;
     private \ReflectionClass $sourceReflection;
 
+    /**
+     * @param class-string<object> $sourceClass
+     * @param class-string<object> $targetClass
+     */
     public function __construct(
         private string $sourceClass,
         private string $targetClass,
@@ -112,15 +115,15 @@ class EntityMapperExpressionBuilder
             : [];
     }
 
-    /** @param string from source|target */
-    private function getArgumentExtractionCallback(string|\ReflectionClass $source, string|\ReflectionClass $target, string|\ReflectionProperty|\ReflectionParameter $argument, string $from = 'source'): ArgumentExpressions
+    /** @param string $from source|target */
+    private function getArgumentExtractionCallback(\ReflectionClass $source, \ReflectionClass $target, string|\ReflectionProperty|\ReflectionParameter $argument, string $from = 'source'): ArgumentExpressions
     {
         if ('source' !== $from && 'target' !== $from) {
             throw new \LogicException(sprintf('Invalid argument $from value %s. Only source|target is valid.', $from));
         }
 
-        $sourceVariableName = is_string($source) ? $this->sourceArgumentsVariableName : ($source->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName);
-        $targetVariableName = is_string($target) ? $this->targetArgumentsVariableName : ($target->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName);
+        $sourceVariableName = $source->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName;
+        $targetVariableName = $target->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName;
 
         if ('target' === $from) {
             $targetArgument = $argument;
@@ -140,12 +143,16 @@ class EntityMapperExpressionBuilder
             );
         }
 
+        /**
+         * @var string|\ReflectionProperty                      $sourceArgument
+         * @var string|\ReflectionParameter|\ReflectionProperty $targetArgument
+         */
         $getterExpression = $this->getGetterExpression($sourceVariableName, $sourceArgument);
         $setterExpression = $this->getSetterExpression($getterExpression, $targetVariableName, $targetArgument);
         $constructorExpression = $this->getSetterExpression($getterExpression, $this->targetArgumentsVariableName, $targetArgument);
 
         $ignoreProperty = false;
-        if ($sourceArgument instanceof ReflectionProperty) {
+        if ($sourceArgument instanceof \ReflectionProperty) {
             if (!empty($ignorePropertiesIfNull = $sourceArgument->getDeclaringClass()->getAttributes(IgnorePropertiesIfNull::class))) {
                 $ignoreProperty = $ignorePropertiesIfNull[0]->newInstance()->ignore;
             }
@@ -160,17 +167,17 @@ class EntityMapperExpressionBuilder
         }
 
         return new ArgumentExpressions(
-            is_string($sourceArgument) || null ? $sourceArgument : $sourceArgument->getName(),
-            is_string($targetArgument) || null ? $targetArgument : $targetArgument->getName(),
+            is_string($sourceArgument) ? $sourceArgument : $sourceArgument->getName(),
+            is_string($targetArgument) ? $targetArgument : $targetArgument->getName(),
             $setterExpression,
             $constructorExpression,
         );
     }
 
-    private function findMatchingProperty(\ReflectionClass $propertySource, \ReflectionClass $propertyTarget, string|\ReflectionProperty|\ReflectionParameter $property): null|string|\ReflectionProperty|\ReflectionParameter
+    private function findMatchingProperty(\ReflectionClass $propertySource, \ReflectionClass $propertyTarget, string|\ReflectionProperty|\ReflectionParameter $property): null|\ReflectionProperty // + maybe string|\ReflectionParameter
     {
-        if (!in_array($property, $propertySource->getProperties()) && !in_array($property, $propertySource->getConstructor()->getParameters())) {
-            throw new \LogicException(sprintf('Property %s not found in class %s', $property->getName(), $propertySource->getName()));
+        if (!in_array($property, $propertySource->getProperties()) && !in_array($property, ($constructor = $propertySource->getConstructor()) ? $constructor->getParameters() : [])) {
+            throw new \LogicException(sprintf('Property %s not found in class %s', is_string($property) ? $property : $property->getName(), $propertySource->getName()));
         }
 
         if (is_string($property)) {
@@ -191,7 +198,7 @@ class EntityMapperExpressionBuilder
             return $propertyTarget->getProperty($property->getName());
         }
 
-        if ($property->isOptional()) {
+        if ($property instanceof \ReflectionParameter && $property->isOptional()) {
             return null;
         }
 

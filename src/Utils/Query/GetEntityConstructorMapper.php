@@ -10,6 +10,10 @@ use PBaszak\MessengerCacheBundle\Contract\Required\Cacheable;
 #[Cache(pool: 'messenger_doctrine_dto.mapper')]
 class GetEntityConstructorMapper implements Cacheable
 {
+    /**
+     * @param class-string<object> $entityClass
+     * @param class-string<object> $dtoClass
+     */
     public function __construct(
         public readonly string $entityClass,
         public readonly string $dtoClass,

@@ -6,7 +6,7 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Attribute;
 
 use Attribute;
 
-#[Attribute(Attribute::TARGET_PROPERTY)]
+#[\Attribute(\Attribute::TARGET_PROPERTY)]
 class IgnorePropertyIfNull
 {
     public function __construct(

@@ -27,6 +27,7 @@ class PutObjectHandler
 
     public function __invoke(PutObject $message): object
     {
+        /** @var class-string<object> $targetEntity */
         $targetEntity = $this->getTargetEntity($message->dto);
         $dtoClass = get_class($message->dto);
         $_er = $this->_em->getRepository($targetEntity);
@@ -36,7 +37,7 @@ class PutObjectHandler
         }
 
         $entityCreated = false;
-        if (!isset($entity) || null === $entity) {
+        if (!isset($entity)) {
             $function = function (object $dto): array {throw new \LogicException('This should not be called'); };
             eval($this->handle(new GetEntityConstructorMapper($targetEntity, $dtoClass)));
             $entity = new $targetEntity(
