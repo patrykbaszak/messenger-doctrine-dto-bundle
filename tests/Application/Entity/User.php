@@ -38,9 +38,9 @@ class User
         array $roles = []
     ) {
         $this->id = Uuid::v4()->toRfc4122();
-        $this->createdAt = new \DateTimeImmutable();
         $this->email = $email;
         $this->passwordHash = $passwordHash;
         $this->roles = $roles;
+        $this->createdAt = new \DateTimeImmutable();
     }
 }

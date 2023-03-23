@@ -5,6 +5,8 @@ doctrine:
         port: 5432
         user: '%env(POSTGRES_USER)%'
         password: '%env(POSTGRES_PASSWORD)%'
+        default_table_options:
+            name_prefix: '%env(POSTGRES_SCHEMA)%.'
         driver: pdo_pgsql
         server_version: 15.2
     orm:
@@ -16,7 +18,7 @@ doctrine:
             App:
                 is_bundle: false
                 dir: '%kernel.project_dir%/tests/Application/Entity'
-                prefix: 'PBaszak\MessengerDoctrineDTOBundle\Application\Entity'
+                prefix: 'PBaszak\MessengerDoctrineDTOBundle\Tests\Application\Entity'
                 alias: App
                 type: attribute
 

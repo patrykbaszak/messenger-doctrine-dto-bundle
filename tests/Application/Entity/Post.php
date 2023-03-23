@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Application\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 
@@ -20,6 +21,9 @@ class Post
 
     #[ORM\Column(type: "text")]
     public string $content;
+    
+    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: "post")]
+    public Collection $likes;
 
     #[ORM\Column(type: "datetime")]
     public \DateTimeInterface $createdAt;

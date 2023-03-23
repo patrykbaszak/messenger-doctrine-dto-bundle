@@ -28,8 +28,6 @@ services:
         restart: always
         environment:
             ADMINER_DEFAULT_SERVER: db
-        networks:
-            - network
     app:
         build:
             context: .
@@ -45,13 +43,9 @@ services:
             POSTGRES_DB: $APP_DB_NAME
             POSTGRES_PASSWORD: $APP_DB_PASSWORD
             POSTGRES_SCHEMA: $APP_DB_SCHEMA
-        networks:
-            - network
         ports:
             - '80:80'
             - '443:443'
-networks:
-    network:
 
 volumes:
     volume:
