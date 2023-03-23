@@ -1,0 +1,57 @@
+version: '3.3'
+
+services:
+    db:
+        build:
+            context: .
+            dockerfile: ./docker/db/Dockerfile
+        environment:
+            PGUSER: $POSTGRES_DB_USER
+            PGPASSWORD: $POSTGRES_DB_PASSWORD
+            POSTGRES_DB: $POSTGRES_DB_NAME
+            POSTGRES_PASSWORD: $POSTGRES_DB_PASSWORD
+            POSTGRES_USER: $POSTGRES_DB_USER
+            APP_USER: $APP_DB_USER
+            APP_DB: $APP_DB_NAME
+            APP_PASSWORD: $APP_DB_PASSWORD
+            APP_SCHEMA: $APP_DB_SCHEMA
+            TZ: Europe/Warsaw
+        volumes:
+            - volume:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready"]
+            interval: 10s
+            timeout: 5s
+            retries: 15
+    adminer:
+        image: adminer
+        restart: always
+        environment:
+            ADMINER_DEFAULT_SERVER: db
+        networks:
+            - network
+    app:
+        build:
+            context: .
+            dockerfile: ./docker/app/Dockerfile
+        volumes:
+            - '.:/app:cached'
+            - './docker/app/nginx/nginx.conf:/etc/nginx/nginx.conf'
+            - './docker/app/nginx/sites-enabled:/etc/nginx/sites-enabled'
+            - './docker/app/nginx/sites-available:/etc/nginx/sites-available'
+        working_dir: /app
+        environment:
+            POSTGRES_USER: $APP_DB_USER
+            POSTGRES_DB: $APP_DB_NAME
+            POSTGRES_PASSWORD: $APP_DB_PASSWORD
+            POSTGRES_SCHEMA: $APP_DB_SCHEMA
+        networks:
+            - network
+        ports:
+            - '80:80'
+            - '443:443'
+networks:
+    network:
+
+volumes:
+    volume:

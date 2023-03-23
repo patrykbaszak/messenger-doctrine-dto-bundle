@@ -1,0 +1,27 @@
+doctrine:
+    dbal:
+        dbname: '%env(POSTGRES_DB)%'
+        host: db
+        port: 5432
+        user: '%env(POSTGRES_USER)%'
+        password: '%env(POSTGRES_PASSWORD)%'
+        driver: pdo_pgsql
+        server_version: 15.2
+    orm:
+        auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+        auto_mapping: true
+        mappings:
+            App:
+                is_bundle: false
+                dir: '%kernel.project_dir%/tests/Application/Entity'
+                prefix: 'PBaszak\MessengerDoctrineDTOBundle\Application\Entity'
+                alias: App
+                type: attribute
+
+when@test:
+    doctrine:
+        dbal:
+            # "TEST_TOKEN" is typically set by ParaTest
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'

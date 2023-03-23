@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# check is /app dir exists
+cd /app || exit 1
+php -d memory_limit=-1 bin/console cache:clear
+php -d memory_limit=-1 bin/console cache:warmup
+php -d memory_limit=-1 bin/console assets:install -n
+php -d memory_limit=-1 bin/console doctrine:migrations:migrate --no-interaction
+
+mkdir -p var var/cache var/log var/files var/$APP_ENV
+chown -R www-data:www-data var
+
+docker-php-entrypoint "$@"

@@ -1,0 +1,19 @@
+framework:
+    handle_all_throwables: true
+    php_errors:
+        log: true
+    secret: '%env(APP_SECRET)%'
+
+parameters:
+    db_schema: '%env(string:POSTGRES_SCHEMA)%'
+
+services:
+    _defaults:
+        autowire: true      
+        autoconfigure: true 
+
+    PBaszak\MessengerDoctrineDTOBundle\Tests\:
+        resource: '../tests/'
+        exclude:
+            - '../tests/Application/Entity/'
+            - '../tests/Kernel.php'
