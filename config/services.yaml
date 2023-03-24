@@ -8,6 +8,10 @@ framework:
 
 parameters:
     db_schema: '%env(string:POSTGRES_SCHEMA)%'
+    env(POSTGRES_DB): doctrine_dto
+    env(POSTGRES_PASSWORD): ZTB6JpziG6171smtiqt0
+    env(POSTGRES_USER): doctrine_dto
+    env(POSTGRES_SCHEMA): doctrine_dto
 
 services:
     _defaults:
