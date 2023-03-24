@@ -14,9 +14,10 @@ class EntityMapperExpressionBuilder
     private const ARRAY_PROPERTY_TEMPLATE = '%s[\'%s\']';
     private const PUBLIC_PROPERTY_TEMPLATE = '$%s%s%s';
     private const PRIVATE_PROPERTY_TEMPLATE = '$%s%s%s()';
+    private const GET_ENTITY_TEMPLATE = '$%s->find(%s::class, %s)';
 
     /** Access methods prefixes */
-    private const GETTERS = ['', 'get', 'is', 'has'];
+    private const GETTERS = ['', 'get'];
     private const SETTERS = ['', 'set'];
 
     /** Expressions templates */
@@ -38,6 +39,7 @@ class EntityMapperExpressionBuilder
         private string $targetVariableName = 'entity',
         private string $sourceArgumentsVariableName = 'variables',
         private string $targetArgumentsVariableName = 'arguments',
+        private string $entityManagerVariableName = 'entityManager',
     ) {
         $this->targetReflection = new \ReflectionClass($targetClass);
         $this->sourceReflection = new \ReflectionClass($sourceClass);
@@ -147,7 +149,9 @@ class EntityMapperExpressionBuilder
          * @var string|\ReflectionProperty                      $sourceArgument
          * @var string|\ReflectionParameter|\ReflectionProperty $targetArgument
          */
-        $getterExpression = $this->getGetterExpression($sourceVariableName, $sourceArgument);
+        $getterExpression = ($targetProperty = $this->getTargetPropertyAttrIfEntityIsDeclared($sourceArgument))
+            ? $this->getGetExistingEntityExpression($sourceVariableName, $sourceArgument, $targetProperty)
+            : $this->getGetterExpression($sourceVariableName, $sourceArgument);
         $setterExpression = $this->getSetterExpression($getterExpression, $targetVariableName, $targetArgument);
         $constructorExpression = $this->getSetterExpression($getterExpression, $this->targetArgumentsVariableName, $targetArgument);
 
@@ -176,14 +180,17 @@ class EntityMapperExpressionBuilder
 
     private function findMatchingProperty(\ReflectionClass $propertySource, \ReflectionClass $propertyTarget, string|\ReflectionProperty|\ReflectionParameter $property): null|\ReflectionProperty // + maybe string|\ReflectionParameter
     {
+        /* Check is property exists in source class */
         if (!in_array($property, $propertySource->getProperties()) && !in_array($property, ($constructor = $propertySource->getConstructor()) ? $constructor->getParameters() : [])) {
             throw new \LogicException(sprintf('Property %s not found in class %s', is_string($property) ? $property : $property->getName(), $propertySource->getName()));
         }
 
+        /* If given property is just a string we can only search for same name in target class */
         if (is_string($property)) {
             return $propertyTarget->getProperty($property) ?: throw new \LogicException(sprintf('Property %s not found in class %s.', $property, $propertyTarget->getName()));
         }
 
+        /* If TargetProperty attribute is declared in incoming property */
         if (!empty($targetPropertyAttr = $property->getAttributes(TargetProperty::class))) {
             $targetPropertyName = $targetPropertyAttr[0]->newInstance()->name;
             $targetProperty = $propertyTarget->getProperty($targetPropertyName);
@@ -194,15 +201,58 @@ class EntityMapperExpressionBuilder
             return $targetProperty;
         }
 
-        if ($propertyTarget->hasProperty($property->getName())) {
-            return $propertyTarget->getProperty($property->getName());
+        /* Looking for matching property in target */
+        foreach ($propertyTarget->getProperties() as $targetProperty) {
+            if ($targetProperty->getName() === $property->getName()) {
+                return $targetProperty;
+            }
+
+            if (!empty($targetPropertyAttr = $targetProperty->getAttributes(TargetProperty::class))) {
+                $targetPropertyName = $targetPropertyAttr[0]->newInstance()->name;
+                if ($targetPropertyName === $property->getName()) {
+                    return $targetProperty;
+                }
+            }
         }
 
+        /* If searched property is optional constructor parameter so we don't need looking for matching property and can accept this situation */
         if ($property instanceof \ReflectionParameter && $property->isOptional()) {
             return null;
         }
 
         throw new \LogicException(sprintf('Property %s not found in class %s.', $property->getName(), $propertyTarget->getName()));
+    }
+
+    private function getTargetPropertyAttrIfEntityIsDeclared(string|\ReflectionProperty|\ReflectionParameter $property): ?TargetProperty
+    {
+        if (is_string($property)) {
+            return null;
+        }
+
+        if (empty($targetPropertyAttr = $property->getAttributes(TargetProperty::class))) {
+            return null;
+        }
+
+        $targetPropertyAttr = $targetPropertyAttr[0]->newInstance();
+        if (null === $targetPropertyAttr->entity) {
+            return null;
+        }
+
+        return $targetPropertyAttr;
+    }
+
+    private function getGetExistingEntityExpression(string $sourceVariableName, string|\ReflectionProperty $property, TargetProperty $targetPropertyAttr): string
+    {
+        if (null === ($entityClass = $targetPropertyAttr->entity)) {
+            throw new \LogicException(sprintf('Entity class not defined for property %s.', is_string($property) ? $property : $property->getName()));
+        }
+        if (!class_exists($entityClass)) {
+            throw new \LogicException(sprintf('Entity class %s not found.', $entityClass));
+        }
+
+        $getterExpression = $this->getGetterExpression($sourceVariableName, $property);
+
+        return sprintf(self::GET_ENTITY_TEMPLATE, $this->entityManagerVariableName, $entityClass, $getterExpression);
     }
 
     private function getGetterExpression(string $sourceVariableName, string|\ReflectionProperty $property): string

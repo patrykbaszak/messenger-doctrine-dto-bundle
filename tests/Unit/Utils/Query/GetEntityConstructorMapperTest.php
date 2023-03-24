@@ -27,7 +27,7 @@ class GetEntityConstructorMapperTest extends TestCase
 
         $dto = new UserRegistrationData('test@test.com', 'password');
         $entity = new User(
-            ...$function($dto)
+            ...$function($dto, $this->createMock(\Doctrine\ORM\EntityManagerInterface::class))
         );
 
         $this->assertSame($dto->email, $entity->email);

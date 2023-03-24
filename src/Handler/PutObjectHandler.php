@@ -36,22 +36,28 @@ class PutObjectHandler
             $entity = $_er->find($message->id);
         }
 
-        $entityCreated = false;
-        if (!isset($entity)) {
-            $function = function (object $dto): array {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityConstructorMapper($targetEntity, $dtoClass)));
-            $entity = new $targetEntity(
-                ...$function($message->dto)
-            );
-            $entityCreated = true;
+        $this->_em->getConnection()->beginTransaction();
+        try {
+            $entityCreated = false;
+            if (!isset($entity)) {
+                $function = function (object $dto, EntityManagerInterface $_em): array {throw new \LogicException('This should not be called'); };
+                eval($this->handle(new GetEntityConstructorMapper($targetEntity, $dtoClass)));
+                $entity = new $targetEntity(
+                    ...$function($message->dto, $this->_em)
+                );
+                $entityCreated = true;
+            }
+
+            $function = function (object $dto, object $entity, EntityManagerInterface $_em): void {throw new \LogicException('This should not be called'); };
+            eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, $entityCreated)));
+            $function($entity, $message->dto, $this->_em);
+
+            $this->_em->persist($entity);
+            $this->_em->flush();
+        } catch (\Throwable $e) {
+            $this->_em->getConnection()->rollBack();
+            throw $e;
         }
-
-        $function = function (object $dto, object $entity): void {throw new \LogicException('This should not be called'); };
-        eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, $entityCreated)));
-        $function($entity, $message->dto);
-
-        $this->_em->persist($entity);
-        $this->_em->flush();
 
         return $entity;
     }
