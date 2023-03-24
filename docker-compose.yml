@@ -39,6 +39,7 @@ services:
             - './docker/app/nginx/sites-available:/etc/nginx/sites-available'
         working_dir: /app
         env_file:
+            - .env
             - .env.local
         environment:
             POSTGRES_USER: $APP_DB_USER
