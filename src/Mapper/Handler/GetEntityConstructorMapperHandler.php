@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Mapper\Handler;
 
-use Doctrine\ORM\EntityManagerInterface;
 use PBaszak\MessengerDoctrineDTOBundle\Mapper\EntityMapperExpressionBuilder;
 use PBaszak\MessengerDoctrineDTOBundle\Mapper\Query\GetEntityConstructorMapper;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
@@ -12,7 +11,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler()]
 class GetEntityConstructorMapperHandler
 {
-    private const FUNCTION_TEMPLATE = '$function = function (%s $dto, %s $_em): array {$arguments=[];%sreturn $arguments;};';
+    private const FUNCTION_TEMPLATE = '$function = function (%s $dto): array {$arguments=[];%sreturn $arguments;};';
 
     public function __invoke(GetEntityConstructorMapper $query): string
     {
@@ -30,7 +29,6 @@ class GetEntityConstructorMapperHandler
         return sprintf(
             self::FUNCTION_TEMPLATE,
             $query->dtoAsArray ? 'array' : 'object',
-            EntityManagerInterface::class,
             implode('', $argumentsMapper)
         );
     }

@@ -21,6 +21,10 @@ class PutObjectHandler
     use GetTargetEntity;
     use GetIdentifier;
 
+    /** @var array<int|string,object> */
+    private static array $persistedEntities = [];
+    private static int $initialized = 0;
+
     public function __construct(
         private EntityManagerInterface $_em,
         MessageBusInterface $messageBus,
@@ -30,38 +34,44 @@ class PutObjectHandler
 
     public function __invoke(PutObject $message): object
     {
-        if ($message->instanceOf && $message->dto instanceof $message->instanceOf) {
-            throw new \LogicException('If You use instanceOf it means that dto is an array or anonymous object. So You cannot use it as an object. Clear the instanceOf property or use the dto as an object.');
-        }
-
+        ++self::$initialized;
         /** @var class-string<object> $targetEntity */
         $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->dto);
         $dtoClass = $message->instanceOf ?? get_class($message->dto);
         if (null !== ($id = $this->getIdentifier($message->dto))) {
-            $entity = $this->_em->find($targetEntity, $id);
+            $entity = self::$persistedEntities[$id] ?? $this->_em->find($targetEntity, $id);
         }
 
         $this->_em->getConnection()->beginTransaction();
         try {
             $entityCreated = false;
             if (!isset($entity)) {
-                $function = function (object $dto, EntityManagerInterface $_em): array {throw new \LogicException('This should not be called'); };
+                $function = function (object $dto): array {throw new \LogicException('This should not be called'); };
                 eval($this->handle(new GetEntityConstructorMapper($targetEntity, $dtoClass, is_array($message->dto))));
                 $entity = new $targetEntity(
-                    ...$function($message->dto, $this->_em)
+                    ...$function($message->dto)
                 );
                 $entityCreated = true;
             }
 
-            $function = function (object $entity, object $dto, EntityManagerInterface $_em): void {throw new \LogicException('This should not be called'); };
+            $function = function (object $entity, object $dto): void {throw new \LogicException('This should not be called'); };
             eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, $entityCreated, is_array($message->dto))));
-            $function($entity, $message->dto, $this->_em);
+            $function($entity, $message->dto);
 
-            $this->_em->persist($entity);
-            $this->_em->flush();
+            $id = $this->getIdentifier($entity);
+            if (!isset(self::$persistedEntities[$id])) {
+                $this->_em->persist($entity);
+                self::$persistedEntities[$id] = $entity;
+            }
         } catch (\Throwable $e) {
             $this->_em->getConnection()->rollBack();
             throw $e;
+        }
+
+        --self::$initialized;
+        if (0 === self::$initialized) {
+            $this->_em->flush();
+            self::$persistedEntities = [];
         }
 
         return $entity;

@@ -30,25 +30,27 @@ class UpdateObjectHandler
 
     public function __invoke(UpdateObject $message): object
     {
-        if ($message->instanceOf && $message->dto instanceof $message->instanceOf) {
-            throw new \LogicException('If You use instanceOf it means that dto is an array or anonymous object. So You cannot use it as an object. Clear the instanceOf property or use the dto as an object.');
-        }
-
         /** @var class-string<object> $targetEntity */
         $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->dto);
         $dtoClass = $message->instanceOf ?? get_class($message->dto);
         $id = $this->getIdentifier($message->dto);
-        $entity = $this->_em->find($targetEntity, $id);
 
-        if (null === $entity) {
+        if (null === $id || null === ($entity = $this->_em->find($targetEntity, $id))) {
             throw new EntityNotFoundException(sprintf('Entity %s with id %s not found.', $targetEntity, $id));
         }
 
         $this->_em->getConnection()->beginTransaction();
         try {
-            $function = function (object $entity, object $dto, EntityManagerInterface $_em): void {throw new \LogicException('This should not be called'); };
+            if ($targetEntity === $dtoClass) {
+                $this->_em->persist($entity);
+                $this->_em->flush();
+
+                return $entity;
+            }
+
+            $function = function (object $entity, object $dto): void {throw new \LogicException('This should not be called'); };
             eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, false, is_array($message->dto))));
-            $function($entity, $message->dto, $this->_em);
+            $function($entity, $message->dto);
 
             $this->_em->persist($entity);
             $this->_em->flush();

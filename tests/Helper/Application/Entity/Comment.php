@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
@@ -41,6 +42,7 @@ class Comment
         $this->id = Uuid::v4()->toRfc4122();
         $this->author = $author;
         $this->post = $post;
+        $this->likes = new ArrayCollection();
         $this->content = $content;
         $this->createdAt = new \DateTimeImmutable();
     }

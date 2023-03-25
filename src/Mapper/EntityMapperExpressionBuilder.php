@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Mapper;
 
+use Doctrine\ORM\Mapping\Entity;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertiesIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertyIfNull;
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetEntity;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetProperty;
+use PBaszak\MessengerDoctrineDTOBundle\Contract\PutObject;
 
 class EntityMapperExpressionBuilder
 {
@@ -14,7 +17,8 @@ class EntityMapperExpressionBuilder
     private const ARRAY_PROPERTY_TEMPLATE = '$%s[\'%s\']';
     private const PUBLIC_PROPERTY_TEMPLATE = '$%s%s%s';
     private const PRIVATE_PROPERTY_TEMPLATE = '$%s%s%s()';
-    private const GET_ENTITY_TEMPLATE = '$%s->find(%s::class, %s)';
+    private const GET_ENTITY_TEMPLATE = '$this->%s->find(%s::class, %s)';
+    private const PUT_OBJECT_TEMPLATE = '$this->handle(new %s(%s, %s::class))';
 
     /** Access methods prefixes */
     private const GETTERS = ['', 'get'];
@@ -39,7 +43,7 @@ class EntityMapperExpressionBuilder
         private string $targetVariableName = 'entity',
         private string $sourceArgumentsVariableName = 'variables',
         private string $targetArgumentsVariableName = 'arguments',
-        private string $entityManagerVariableName = 'entityManager',
+        private string $entityManagerVariableName = '_em',
         private bool $sourceAsArray = false,
         private bool $targetAsArray = false,
     ) {
@@ -127,7 +131,11 @@ class EntityMapperExpressionBuilder
         }
 
         $sourceVariableName = $source->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName;
-        $targetVariableName = $target->name === $this->sourceClass ? $this->sourceVariableName : $this->targetVariableName;
+        $targetVariableName = $target->name === $this->sourceClass && $source->name !== $target->name ? $this->sourceVariableName : $this->targetVariableName;
+
+        if ($sourceVariableName === $targetVariableName) {
+            throw new \LogicException('Source and target variable names must be different.');
+        }
 
         if ('target' === $from) {
             $targetArgument = $argument;
@@ -153,7 +161,10 @@ class EntityMapperExpressionBuilder
          */
         $getterExpression = ($targetProperty = $this->getTargetPropertyAttrIfEntityIsDeclared($sourceArgument))
             ? $this->getGetExistingEntityExpression($sourceVariableName, $sourceArgument, $targetProperty)
-            : $this->getGetterExpression($sourceVariableName, $sourceArgument);
+            : (($entityClass = $this->getTargetEntityIfIsDeclared($sourceArgument))
+                ? $this->getPutEntityExpression($sourceVariableName, $sourceArgument, $entityClass)
+                : $this->getGetterExpression($sourceVariableName, $sourceArgument)
+            );
         $setterExpression = $this->getSetterExpression($getterExpression, $targetVariableName, $targetArgument);
         $constructorExpression = $this->getSetterExpression($getterExpression, $this->targetArgumentsVariableName, $targetArgument);
 
@@ -167,9 +178,36 @@ class EntityMapperExpressionBuilder
             }
         }
 
+        if ($source->name === $target->name) {
+            $ignoreProperty = true;
+        }
+
         if ($ignoreProperty) {
-            $setterExpression = sprintf('if (isset(%s) && null !== %s) { %s }', $getterExpression, $getterExpression, $setterExpression);
-            $constructorExpression = sprintf('if (isset(%s) && null !== %s) { %s }', $getterExpression, $getterExpression, $constructorExpression);
+            if (!str_ends_with($getterExpression, ')')) {
+                $setterExpression = sprintf(
+                    'if (isset(%s) && null !== %s) { %s }',
+                    $getterExpression,
+                    $getterExpression,
+                    $setterExpression
+                );
+                $constructorExpression = sprintf(
+                    'if (isset(%s) && null !== %s) { %s }',
+                    $getterExpression,
+                    $getterExpression,
+                    $constructorExpression
+                );
+            } else {
+                $setterExpression = sprintf(
+                    'if (null !== %s) { %s }',
+                    $getterExpression,
+                    $setterExpression
+                );
+                $constructorExpression = sprintf(
+                    'if (null !== %s) { %s }',
+                    $getterExpression,
+                    $constructorExpression
+                );
+            }
         }
 
         return new ArgumentExpressions(
@@ -243,6 +281,50 @@ class EntityMapperExpressionBuilder
         return $targetPropertyAttr;
     }
 
+    private function getTargetEntityIfIsDeclared(string|\ReflectionProperty|\ReflectionParameter $property): ?string
+    {
+        if (is_string($property)) {
+            return null;
+        }
+
+        $targetEntity = $property->getAttributes(TargetEntity::class);
+
+        if (empty($targetEntity)) {
+            $reflectionType = $property->getType();
+
+            if ($reflectionType instanceof \ReflectionNamedType) {
+                $type = $reflectionType->getName();
+
+                if (class_exists($type)) {
+                    $reflectionClass = new \ReflectionClass($type);
+                    $entity = $reflectionClass->getAttributes(Entity::class);
+                    $targetEntity = $reflectionClass->getAttributes(TargetEntity::class);
+
+                    if (empty($entity) && empty($targetEntity)) {
+                        return null;
+                    }
+
+                    return $type;
+                }
+            }
+
+            return null;
+        }
+
+        return $targetEntity[0]->newInstance()->entityClass;
+    }
+
+    private function getPutEntityExpression(string $sourceVariableName, string|\ReflectionProperty $property, string $targetObjectClass): string
+    {
+        if (!class_exists($targetObjectClass)) {
+            throw new \LogicException(sprintf('Entity or DTO class %s not found.', $targetObjectClass));
+        }
+
+        $getterExpression = $this->getGetterExpression($sourceVariableName, $property);
+
+        return sprintf(self::PUT_OBJECT_TEMPLATE, PutObject::class, $getterExpression, $targetObjectClass);
+    }
+
     private function getGetExistingEntityExpression(string $sourceVariableName, string|\ReflectionProperty $property, TargetProperty $targetPropertyAttr): string
     {
         if (null === ($entityClass = $targetPropertyAttr->entity)) {
@@ -268,7 +350,7 @@ class EntityMapperExpressionBuilder
         }
 
         foreach (self::GETTERS as $prefix) {
-            $methodName = $prefix.!empty($prefix) ? ucfirst($property->getName()) : $property->getName();
+            $methodName = $prefix.(!empty($prefix) ? ucfirst($property->getName()) : $property->getName());
             if ($property->getDeclaringClass()->hasMethod($methodName)) {
                 $method = $property->getDeclaringClass()->getMethod($methodName);
                 if (!$method->isPublic()) {
