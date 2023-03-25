@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Message;
+namespace PBaszak\MessengerDoctrineDTOBundle\Contract;
 
+/**
+ * Create or update entity in database.
+ */
 class PutObject
 {
     public function __construct(

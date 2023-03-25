@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Utils\Mapper;
+namespace PBaszak\MessengerDoctrineDTOBundle\Mapper;
 
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertiesIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertyIfNull;

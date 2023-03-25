@@ -6,9 +6,9 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Unit\Utils\Query;
 
 use PBaszak\MessengerCacheBundle\Contract\Replaceable\MessengerCacheManagerInterface;
 use PBaszak\MessengerCacheBundle\Provider\CacheKeyProvider;
+use PBaszak\MessengerDoctrineDTOBundle\Mapper\Query\GetEntityConstructorMapper;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\DTO\UserRegistrationData;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity\User;
-use PBaszak\MessengerDoctrineDTOBundle\Utils\Query\GetEntityConstructorMapper;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\HandleTrait;
 

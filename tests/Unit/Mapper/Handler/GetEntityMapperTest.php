@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Unit\Utils\Query;
+namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Unit\Mapper\Handler;
 
+use PBaszak\MessengerDoctrineDTOBundle\Mapper\Handler\GetEntityMapperHandler;
+use PBaszak\MessengerDoctrineDTOBundle\Mapper\Query\GetEntityMapper;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\DTO\UserRegistrationData;
 use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity\User;
-use PBaszak\MessengerDoctrineDTOBundle\Utils\Query\GetEntityMapper;
-use PBaszak\MessengerDoctrineDTOBundle\Utils\Query\GetEntityMapperHandler;
 use PHPUnit\Framework\TestCase;
 
 /** @group unit */

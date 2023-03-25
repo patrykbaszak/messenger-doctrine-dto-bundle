@@ -1,6 +1,26 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\GetObjectHandler\\:\\:__invoke\\(\\) has no return type specified\\.$#"
+			count: 1
+			path: ../../src/Handler/GetObjectHandler.php
+
+		-
+			message: "#^Property PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\GetObjectHandler\\:\\:\\$_em is never read, only written\\.$#"
+			count: 1
+			path: ../../src/Handler/GetObjectHandler.php
+
+		-
+			message: "#^Property PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\GetObjectHandler\\:\\:\\$denormalizer is never read, only written\\.$#"
+			count: 1
+			path: ../../src/Handler/GetObjectHandler.php
+
+		-
 			message: "#^Unreachable statement \\- code above always terminates\\.$#"
 			count: 2
 			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 2
+			path: ../../src/Handler/UpdateObjectHandler.php

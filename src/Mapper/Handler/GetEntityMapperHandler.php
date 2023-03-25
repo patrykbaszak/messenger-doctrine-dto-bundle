@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace PBaszak\MessengerDoctrineDTOBundle\Utils\Query;
+namespace PBaszak\MessengerDoctrineDTOBundle\Mapper\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
-use PBaszak\MessengerDoctrineDTOBundle\Utils\Mapper\EntityMapperExpressionBuilder;
+use PBaszak\MessengerDoctrineDTOBundle\Mapper\EntityMapperExpressionBuilder;
+use PBaszak\MessengerDoctrineDTOBundle\Mapper\Query\GetEntityMapper;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler()]
