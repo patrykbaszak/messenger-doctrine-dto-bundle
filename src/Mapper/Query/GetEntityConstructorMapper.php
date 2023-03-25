@@ -17,6 +17,7 @@ class GetEntityConstructorMapper implements Cacheable
     public function __construct(
         public readonly string $entityClass,
         public readonly string $dtoClass,
+        public readonly bool $dtoAsArray = false
     ) {
     }
 }

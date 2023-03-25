@@ -8,7 +8,8 @@ use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetEntity;
 
 trait GetTargetEntity
 {
-    protected function getTargetEntity(object $dto): string
+    /** @param class-string<object>|object $dto */
+    protected function getTargetEntity(string|object $dto): string
     {
         $attributes = (new \ReflectionClass($dto))->getAttributes(TargetEntity::class);
 

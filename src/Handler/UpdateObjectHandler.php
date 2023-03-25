@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use PBaszak\MessengerDoctrineDTOBundle\Contract\UpdateObject;
 use PBaszak\MessengerDoctrineDTOBundle\Mapper\Query\GetEntityMapper;
+use PBaszak\MessengerDoctrineDTOBundle\Utils\GetIdentifier;
 use PBaszak\MessengerDoctrineDTOBundle\Utils\GetTargetEntity;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\HandleTrait;
@@ -18,6 +19,7 @@ class UpdateObjectHandler
 {
     use HandleTrait;
     use GetTargetEntity;
+    use GetIdentifier;
 
     public function __construct(
         private EntityManagerInterface $_em,
@@ -28,20 +30,24 @@ class UpdateObjectHandler
 
     public function __invoke(UpdateObject $message): object
     {
+        if ($message->instanceOf && $message->dto instanceof $message->instanceOf) {
+            throw new \LogicException('If You use instanceOf it means that dto is an array or anonymous object. So You cannot use it as an object. Clear the instanceOf property or use the dto as an object.');
+        }
+
         /** @var class-string<object> $targetEntity */
-        $targetEntity = $this->getTargetEntity($message->dto);
-        $dtoClass = get_class($message->dto);
-        $_er = $this->_em->getRepository($targetEntity);
-        $entity = $_er->find($message->id);
+        $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->dto);
+        $dtoClass = $message->instanceOf ?? get_class($message->dto);
+        $id = $this->getIdentifier($message->dto);
+        $entity = $this->_em->find($targetEntity, $id);
 
         if (null === $entity) {
-            throw new EntityNotFoundException(sprintf('Entity %s with id %s not found.', $targetEntity, $message->id));
+            throw new EntityNotFoundException(sprintf('Entity %s with id %s not found.', $targetEntity, $id));
         }
 
         $this->_em->getConnection()->beginTransaction();
         try {
             $function = function (object $entity, object $dto, EntityManagerInterface $_em): void {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, false)));
+            eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, false, is_array($message->dto))));
             $function($entity, $message->dto, $this->_em);
 
             $this->_em->persist($entity);

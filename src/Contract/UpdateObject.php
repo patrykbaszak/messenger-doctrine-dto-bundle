@@ -13,9 +13,13 @@ use Doctrine\ORM\EntityNotFoundException;
  */
 class UpdateObject
 {
+    /**
+     * @param array<string,mixed>|object $dto        Incoming data
+     * @param string|null                $instanceOf Incoming data class name (if it's an array or anonymous object)
+     */
     public function __construct(
-        public readonly object $dto,
-        public readonly int|string $id,
+        public readonly array|object $dto,
+        public readonly ?string $instanceOf = null,
     ) {
     }
 }

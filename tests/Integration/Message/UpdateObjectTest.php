@@ -36,8 +36,60 @@ class UpdateObjectTest extends KernelTestCase
         $repo = $this->_em->getRepository(User::class);
         $this->assertSame($entity, $repo->find($entity->id));
 
-        $dto = new UserUpdateData('test2@example.com');
-        $message = new UpdateObject($dto, $entity->id);
+        $dto = new UserUpdateData($entity->id, 'test2@example.com');
+        $message = new UpdateObject($dto);
+        $entity = $this->handle($message);
+
+        $this->assertSame($dto->email, $entity->email);
+        $this->assertNotEmpty($entity->passwordHash);
+
+        $this->_em->getConnection()->rollBack();
+    }
+
+    /** @test */
+    public function testUpdatePutObjectWithArray(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $dto = new UserRegistrationData('test@test.eu', 'password');
+        $message = new PutObject($dto);
+        $entity = $this->handle($message);
+        $repo = $this->_em->getRepository(User::class);
+        $this->assertSame($entity, $repo->find($entity->id));
+
+        $dto = new UserUpdateData($entity->id, 'test2@example.com');
+        $message = new UpdateObject(
+            [
+                'id' => $dto->id,
+                'email' => $dto->email,
+            ],
+            UserUpdateData::class
+        );
+        $entity = $this->handle($message);
+
+        $this->assertSame($dto->email, $entity->email);
+        $this->assertNotEmpty($entity->passwordHash);
+
+        $this->_em->getConnection()->rollBack();
+    }
+
+    /** @test */
+    public function testUpdatePutObjectWithAnonymousObject(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $dto = new UserRegistrationData('test@test.eu', 'password');
+        $message = new PutObject($dto);
+        $entity = $this->handle($message);
+        $repo = $this->_em->getRepository(User::class);
+        $this->assertSame($entity, $repo->find($entity->id));
+
+        $dto = new UserUpdateData($entity->id, 'test2@example.com');
+        $message = new UpdateObject(
+            (object) [
+                'id' => $dto->id,
+                'email' => $dto->email,
+            ],
+            UserUpdateData::class
+        );
         $entity = $this->handle($message);
 
         $this->assertSame($dto->email, $entity->email);

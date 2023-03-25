@@ -16,9 +16,69 @@ parameters:
 			path: ../../src/Handler/GetObjectHandler.php
 
 		-
+			message: "#^Parameter \\#1 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$dto of method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\PutObjectHandler\\:\\:getTargetEntity\\(\\) expects class\\-string\\<object\\>\\|object, array\\<string, mixed\\>\\|object\\|string given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$object of function get_class expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$object of function get_class expects object, class\\-string\\<object\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityConstructorMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
 			message: "#^Unreachable statement \\- code above always terminates\\.$#"
 			count: 2
 			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$dto of method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\UpdateObjectHandler\\:\\:getTargetEntity\\(\\) expects class\\-string\\<object\\>\\|object, array\\<string, mixed\\>\\|object\\|string given\\.$#"
+			count: 1
+			path: ../../src/Handler/UpdateObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$object of function get_class expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/UpdateObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$object of function get_class expects object, class\\-string\\<object\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/UpdateObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/UpdateObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
+			count: 1
+			path: ../../src/Handler/UpdateObjectHandler.php
 
 		-
 			message: "#^Unreachable statement \\- code above always terminates\\.$#"

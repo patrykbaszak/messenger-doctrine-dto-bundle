@@ -45,6 +45,52 @@ class PutObjectTest extends KernelTestCase
     }
 
     /** @test */
+    public function testPutObjectWithArray(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $dto = new UserRegistrationData('test@test.eu', 'password');
+        $message = new PutObject(
+            [
+                'email' => $dto->email,
+                'passwordHash' => $dto->passwordHash,
+            ],
+            UserRegistrationData::class
+        );
+
+        $entity = $this->handle($message);
+
+        $this->assertInstanceOf(User::class, $entity);
+        $this->assertSame($dto->email, $entity->email);
+
+        $repo = $this->_em->getRepository(User::class);
+        $this->assertSame($entity, $repo->find($entity->id));
+        $this->_em->getConnection()->rollBack();
+    }
+
+    /** @test */
+    public function testPutObjectWithAnonymousObject(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $dto = new UserRegistrationData('test@test.eu', 'password');
+        $message = new PutObject(
+            (object) [
+                'email' => $dto->email,
+                'passwordHash' => $dto->passwordHash,
+            ],
+            UserRegistrationData::class
+        );
+
+        $entity = $this->handle($message);
+
+        $this->assertInstanceOf(User::class, $entity);
+        $this->assertSame($dto->email, $entity->email);
+
+        $repo = $this->_em->getRepository(User::class);
+        $this->assertSame($entity, $repo->find($entity->id));
+        $this->_em->getConnection()->rollBack();
+    }
+
+    /** @test */
     public function testUpdatePutObject(): void
     {
         $this->_em->getConnection()->beginTransaction();
@@ -54,8 +100,8 @@ class PutObjectTest extends KernelTestCase
         $repo = $this->_em->getRepository(User::class);
         $this->assertSame($entity, $repo->find($entity->id));
 
-        $dto = new UserUpdateData('test2@example.com');
-        $message = new PutObject($dto, $entity->id);
+        $dto = new UserUpdateData($entity->id, 'test2@example.com');
+        $message = new PutObject($dto);
         $entity = $this->handle($message);
 
         $this->assertSame($dto->email, $entity->email);

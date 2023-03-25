@@ -9,9 +9,13 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Contract;
  */
 class PutObject
 {
+    /**
+     * @param array<string,mixed>|object $dto        Incoming data
+     * @param string|null                $instanceOf Incoming data class name (if it's an array or anonymous object)
+     */
     public function __construct(
-        public readonly object $dto,
-        public readonly null|int|string $id = null,
+        public readonly array|object $dto,
+        public readonly ?string $instanceOf = null,
     ) {
     }
 }

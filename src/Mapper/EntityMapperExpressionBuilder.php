@@ -11,7 +11,7 @@ use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetProperty;
 class EntityMapperExpressionBuilder
 {
     /** Property access templates */
-    private const ARRAY_PROPERTY_TEMPLATE = '%s[\'%s\']';
+    private const ARRAY_PROPERTY_TEMPLATE = '$%s[\'%s\']';
     private const PUBLIC_PROPERTY_TEMPLATE = '$%s%s%s';
     private const PRIVATE_PROPERTY_TEMPLATE = '$%s%s%s()';
     private const GET_ENTITY_TEMPLATE = '$%s->find(%s::class, %s)';
@@ -21,7 +21,7 @@ class EntityMapperExpressionBuilder
     private const SETTERS = ['', 'set'];
 
     /** Expressions templates */
-    private const ARRAY_ARGUMENT_TEMPLATE = '$%s[]=%s;';
+    private const ARRAY_ARGUMENT_TEMPLATE = '$%s[\'%s\']=%s;';
     private const ARGUMENT_TEMPLATE = '%s=%s;';
     private const SETUP_TEMPLATE = '%s%s%s(%s);';
 
@@ -40,6 +40,8 @@ class EntityMapperExpressionBuilder
         private string $sourceArgumentsVariableName = 'variables',
         private string $targetArgumentsVariableName = 'arguments',
         private string $entityManagerVariableName = 'entityManager',
+        private bool $sourceAsArray = false,
+        private bool $targetAsArray = false,
     ) {
         $this->targetReflection = new \ReflectionClass($targetClass);
         $this->sourceReflection = new \ReflectionClass($sourceClass);
@@ -166,8 +168,8 @@ class EntityMapperExpressionBuilder
         }
 
         if ($ignoreProperty) {
-            $setterExpression = sprintf('if (null !== %s) { %s }', $getterExpression, $setterExpression);
-            $constructorExpression = sprintf('if (null !== %s) { %s }', $getterExpression, $constructorExpression);
+            $setterExpression = sprintf('if (isset(%s) && null !== %s) { %s }', $getterExpression, $getterExpression, $setterExpression);
+            $constructorExpression = sprintf('if (isset(%s) && null !== %s) { %s }', $getterExpression, $getterExpression, $constructorExpression);
         }
 
         return new ArgumentExpressions(
@@ -257,8 +259,8 @@ class EntityMapperExpressionBuilder
 
     private function getGetterExpression(string $sourceVariableName, string|\ReflectionProperty $property): string
     {
-        if (is_string($property)) {
-            return sprintf(self::ARRAY_PROPERTY_TEMPLATE, $sourceVariableName, $property);
+        if (is_string($property) || $this->sourceAsArray) {
+            return sprintf(self::ARRAY_PROPERTY_TEMPLATE, $sourceVariableName, is_string($property) ? $property : $property->getName());
         }
 
         if ($property->isPublic()) {
@@ -282,10 +284,11 @@ class EntityMapperExpressionBuilder
 
     private function getSetterExpression(string $sourceGetterExpresion, string $targetVariableName, string|\ReflectionProperty|\ReflectionParameter $argument): string
     {
-        if (is_string($argument) || $targetVariableName === $this->targetArgumentsVariableName || $argument instanceof \ReflectionParameter) {
+        if (is_string($argument) || $targetVariableName === $this->targetArgumentsVariableName || $argument instanceof \ReflectionParameter || $this->targetAsArray) {
             return sprintf(
                 self::ARRAY_ARGUMENT_TEMPLATE,
                 $targetVariableName,
+                is_string($argument) ? $argument : $argument->getName(),
                 $sourceGetterExpresion
             );
         }

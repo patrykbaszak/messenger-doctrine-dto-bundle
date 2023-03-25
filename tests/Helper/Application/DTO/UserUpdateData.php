@@ -13,6 +13,7 @@ use PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity\User;
 class UserUpdateData
 {
     public function __construct(
+        public readonly string $id,
         public readonly ?string $email = null,
         public readonly ?string $passwordHash = null,
     ) {

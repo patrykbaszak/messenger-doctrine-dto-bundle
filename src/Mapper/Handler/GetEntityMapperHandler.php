@@ -21,7 +21,8 @@ class GetEntityMapperHandler
             targetClass: $query->entityClass,
             sourceVariableName: 'dto',
             targetVariableName: 'entity',
-            entityManagerVariableName: '_em'
+            entityManagerVariableName: '_em',
+            sourceAsArray: $query->dtoAsArray
         );
 
         $argumentsMapper = $expressionBuilder->buildSetterExpressions($query->ignoreConstuctorArguments);
@@ -29,7 +30,7 @@ class GetEntityMapperHandler
         return sprintf(
             self::FUNCTION_TEMPLATE,
             $query->entityClass,
-            $query->dtoClass,
+            $query->dtoAsArray ? 'array' : 'object',
             EntityManagerInterface::class,
             implode('', $argumentsMapper)
         );
