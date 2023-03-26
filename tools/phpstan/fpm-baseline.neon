@@ -1,6 +1,16 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Parameter \\#1 \\$dto of method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\DeleteObjectHandler\\:\\:getTargetEntity\\(\\) expects class\\-string\\<object\\>\\|object, array\\<string, mixed\\>\\|object\\|string given\\.$#"
+			count: 1
+			path: ../../src/Handler/DeleteObjectHandler.php
+
+		-
+			message: "#^Parameter \\#1 \\$object of function get_class expects object, class\\-string\\<object\\>\\|object given\\.$#"
+			count: 1
+			path: ../../src/Handler/DeleteObjectHandler.php
+
+		-
 			message: "#^Method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\GetObjectHandler\\:\\:__invoke\\(\\) has no return type specified\\.$#"
 			count: 1
 			path: ../../src/Handler/GetObjectHandler.php
