@@ -36,30 +36,30 @@ class PutObjectHandler
     {
         ++self::$initialized;
         /** @var class-string<object> $targetEntity */
-        $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->dto);
-        $dtoClass = $message->instanceOf ?? get_class($message->dto);
-        if (null !== ($id = $this->getIdentifier($message->dto))) {
+        $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->object);
+        $objectClass = $message->instanceOf ?? get_class($message->object);
+        if (null !== ($id = $this->getIdentifier($message->object))) {
             $entity = self::$persistedEntities[$id] ?? $this->_em->find($targetEntity, $id);
         }
-        if (!isset($entity) && $message->dto instanceof $targetEntity) {
-            $entity = $message->dto;
+        if (!isset($entity) && $message->object instanceof $targetEntity) {
+            $entity = $message->object;
         }
 
         $this->_em->getConnection()->beginTransaction();
         try {
             $entityCreated = false;
             if (!isset($entity)) {
-                $function = function (object $dto): array {throw new \LogicException('This should not be called'); };
-                eval($this->handle(new GetEntityConstructorMapper($targetEntity, $dtoClass, is_array($message->dto))));
+                $function = function (object $object): array {throw new \LogicException('This should not be called'); };
+                eval($this->handle(new GetEntityConstructorMapper($targetEntity, $objectClass, is_array($message->object))));
                 $entity = new $targetEntity(
-                    ...$function($message->dto)
+                    ...$function($message->object)
                 );
                 $entityCreated = true;
             }
 
-            $function = function (object $entity, object $dto): void {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, $entityCreated, is_array($message->dto))));
-            $function($entity, $message->dto);
+            $function = function (object $entity, object $object): void {throw new \LogicException('This should not be called'); };
+            eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, $entityCreated, is_array($message->object))));
+            $function($entity, $message->object);
 
             $id = $this->getIdentifier($entity);
             if (!isset(self::$persistedEntities[$id])) {

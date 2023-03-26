@@ -26,12 +26,12 @@ parameters:
 			path: ../../src/Handler/GetObjectHandler.php
 
 		-
-			message: "#^Parameter \\#1 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			message: "#^Parameter \\#1 \\$dto of method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\PutObjectHandler\\:\\:getTargetEntity\\(\\) expects class\\-string\\<object\\>\\|object, array\\<string, mixed\\>\\|object\\|string given\\.$#"
 			count: 1
 			path: ../../src/Handler/PutObjectHandler.php
 
 		-
-			message: "#^Parameter \\#1 \\$dto of method PBaszak\\\\MessengerDoctrineDTOBundle\\\\Handler\\\\PutObjectHandler\\:\\:getTargetEntity\\(\\) expects class\\-string\\<object\\>\\|object, array\\<string, mixed\\>\\|object\\|string given\\.$#"
+			message: "#^Parameter \\#1 \\$object of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
 			count: 1
 			path: ../../src/Handler/PutObjectHandler.php
 
@@ -46,17 +46,17 @@ parameters:
 			path: ../../src/Handler/PutObjectHandler.php
 
 		-
-			message: "#^Parameter \\#2 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
-			count: 1
-			path: ../../src/Handler/PutObjectHandler.php
-
-		-
 			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityConstructorMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
 			count: 1
 			path: ../../src/Handler/PutObjectHandler.php
 
 		-
 			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
+			count: 1
+			path: ../../src/Handler/PutObjectHandler.php
+
+		-
+			message: "#^Parameter \\#2 \\$object of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
 			count: 1
 			path: ../../src/Handler/PutObjectHandler.php
 
@@ -81,12 +81,12 @@ parameters:
 			path: ../../src/Handler/UpdateObjectHandler.php
 
 		-
-			message: "#^Parameter \\#2 \\$dto of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
+			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
 			count: 1
 			path: ../../src/Handler/UpdateObjectHandler.php
 
 		-
-			message: "#^Parameter \\#2 \\$dtoClass of class PBaszak\\\\MessengerDoctrineDTOBundle\\\\Mapper\\\\Query\\\\GetEntityMapper constructor expects class\\-string\\<object\\>, string\\|false given\\.$#"
+			message: "#^Parameter \\#2 \\$object of closure expects object, array\\<string, mixed\\>\\|object given\\.$#"
 			count: 1
 			path: ../../src/Handler/UpdateObjectHandler.php
 

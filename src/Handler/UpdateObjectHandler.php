@@ -31,9 +31,9 @@ class UpdateObjectHandler
     public function __invoke(UpdateObject $message): object
     {
         /** @var class-string<object> $targetEntity */
-        $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->dto);
-        $dtoClass = $message->instanceOf ?? get_class($message->dto);
-        $id = $this->getIdentifier($message->dto);
+        $targetEntity = $this->getTargetEntity($message->instanceOf ?? $message->object);
+        $objectClass = $message->instanceOf ?? get_class($message->object);
+        $id = $this->getIdentifier($message->object);
 
         if (null === $id || null === ($entity = $this->_em->find($targetEntity, $id))) {
             throw new EntityNotFoundException(sprintf('Entity %s with id %s not found.', $targetEntity, $id));
@@ -41,9 +41,9 @@ class UpdateObjectHandler
 
         $this->_em->getConnection()->beginTransaction();
         try {
-            $function = function (object $entity, object $dto): void {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, false, is_array($message->dto))));
-            $function($entity, $message->dto);
+            $function = function (object $entity, object $object): void {throw new \LogicException('This should not be called'); };
+            eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, false, is_array($message->object))));
+            $function($entity, $message->object);
 
             $this->_em->persist($entity);
             $this->_em->flush();
