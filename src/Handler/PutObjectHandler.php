@@ -41,6 +41,9 @@ class PutObjectHandler
         if (null !== ($id = $this->getIdentifier($message->dto))) {
             $entity = self::$persistedEntities[$id] ?? $this->_em->find($targetEntity, $id);
         }
+        if (!isset($entity) && $message->dto instanceof $targetEntity) {
+            $entity = $message->dto;
+        }
 
         $this->_em->getConnection()->beginTransaction();
         try {

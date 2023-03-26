@@ -146,6 +146,26 @@ class PutObjectTest extends KernelTestCase
     }
 
     /** @test */
+    public function testPutObjectWhichActuallyIsEntityWithArray(): void
+    {
+        $this->_em->getConnection()->beginTransaction();
+        $user = new User('test@test.eu', 'password');
+        $entity = $this->handle(
+            new PutObject(
+                [
+                    'email' => $user->email,
+                    'passwordHash' => $user->passwordHash,
+                ],
+                User::class
+            )
+        );
+        $this->_em->getConnection()->rollBack();
+
+        $this->assertSame($user->email, $entity->email);
+        $this->assertSame($user->passwordHash, $entity->passwordHash);
+    }
+
+    /** @test */
     public function testPutObjectWhichActuallyIsEntityAndHasNestedEntity(): void
     {
         $this->_em->getConnection()->beginTransaction();

@@ -41,13 +41,6 @@ class UpdateObjectHandler
 
         $this->_em->getConnection()->beginTransaction();
         try {
-            if ($targetEntity === $dtoClass) {
-                $this->_em->persist($entity);
-                $this->_em->flush();
-
-                return $entity;
-            }
-
             $function = function (object $entity, object $dto): void {throw new \LogicException('This should not be called'); };
             eval($this->handle(new GetEntityMapper($targetEntity, $dtoClass, false, is_array($message->dto))));
             $function($entity, $message->dto);
