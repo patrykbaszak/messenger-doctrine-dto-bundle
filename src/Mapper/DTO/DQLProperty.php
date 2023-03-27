@@ -6,14 +6,14 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Mapper\DTO;
 
 class DQLProperty
 {
-    public readonly string $name;
     public readonly ?string $outputName;
+    public string $path;
 
     public function __construct(
-        string $name,
-        ?string $outputName = null
+        public readonly string $name,
+        ?string $outputName = null,
+        public readonly array $callbacks = [],
     ) {
-        $this->name = $name;
         $this->outputName = $name === $outputName ? null : $outputName;
     }
 }

@@ -16,7 +16,8 @@
         "symfony/uid": "^6.2",
         "symfony/runtime": "^6.2",
         "pbaszak/messenger-cache-bundle": "^1.2",
-        "symfony/serializer": "^6.2"
+        "symfony/serializer": "^6.2",
+        "symfony/serializer-pack": "^1.2"
     },
     "require-dev": {
         "symfony/phpunit-bridge": ">=6.2",

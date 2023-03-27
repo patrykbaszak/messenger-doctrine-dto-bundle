@@ -11,7 +11,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler()]
 class GetEntityMapperHandler
 {
-    private const FUNCTION_TEMPLATE = '$function = function (%s $entity, %s $dto): void {%s};';
+    private const FUNCTION_TEMPLATE = 'return function (%s $entity, %s $dto): void {%s};';
 
     public function __invoke(GetEntityMapper $query): string
     {

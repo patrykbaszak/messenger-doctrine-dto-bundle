@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity;
 
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\DateTimeFormat;
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\StringFormat;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity]
@@ -15,6 +18,7 @@ class Post
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid')]
+    #[StringFormat()]
     public string $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -28,9 +32,11 @@ class Post
     // public Collection $likes;
 
     #[ORM\Column(type: 'datetime')]
+    #[DateTimeFormat(\DateTime::ISO8601_EXPANDED)]
     public \DateTimeInterface $createdAt;
 
     #[ORM\Column(type: 'datetime', nullable: true)]
+    #[DateTimeFormat(\DateTime::ISO8601_EXPANDED)]
     public ?\DateTimeInterface $modifiedAt = null;
 
     public function __construct(User $author, string $content)

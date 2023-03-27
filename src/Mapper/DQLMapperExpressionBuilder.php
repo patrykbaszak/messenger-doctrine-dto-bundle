@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Mapper;
 
+use PBaszak\MessengerDoctrineDTOBundle\Attribute\MappingCallback;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetEntity;
 use PBaszak\MessengerDoctrineDTOBundle\Mapper\DTO\DQLExpression;
 use PBaszak\MessengerDoctrineDTOBundle\Mapper\DTO\DQLProperty;
@@ -14,6 +15,9 @@ class DQLMapperExpressionBuilder
 {
     use FindMatchingProperty;
     use GetTargetEntity;
+
+    private const PROPERTY_ACCESS_TEMPLATE = '$%s[\'%s\']';
+    private const PROPERTY_SET_TEMPLATE = '$%s%s=%s;';
 
     /** @var DQLExpression[] */
     private static array $expressions = [];
@@ -41,6 +45,50 @@ class DQLMapperExpressionBuilder
         }
 
         return sprintf('SELECT %s FROM %s', implode(', ', $selects), $from);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getOutputMapper(string $inputVariableName, string $outputVariableName): array
+    {
+        $output = [];
+        foreach (self::$expressions as $expression) {
+            foreach ($expression->getPropertiesWithOutputNames() as $property) {
+                $getter = sprintf(self::PROPERTY_ACCESS_TEMPLATE, $inputVariableName, $property->path);
+                foreach ($this->sortCallbacks(array_map(fn (\ReflectionAttribute $attr) => $attr->newInstance(), $property->callbacks)) as $callback) {
+                    $getter = sprintf($callback->callback, $getter);
+                }
+                $output[] = sprintf(self::PROPERTY_SET_TEMPLATE, $outputVariableName, $this->getSetterPath($property->path), $getter);
+            }
+        }
+
+        return $output;
+    }
+
+    private function getSetterPath(string $propertyPath): string
+    {
+        $parts = explode('__', $propertyPath);
+        $output = '';
+        foreach ($parts as $part) {
+            $output .= sprintf('[\'%s\']', $part);
+        }
+
+        return $output;
+    }
+
+    /**
+     * @param object[] $callbacks
+     *
+     * @return MappingCallback[]
+     */
+    private function sortCallbacks(array $callbacks): array
+    {
+        usort($callbacks, function (MappingCallback $a, MappingCallback $b) {
+            return $a->priority <=> $b->priority;
+        });
+
+        return $callbacks;
     }
 
     /**
@@ -90,7 +138,8 @@ class DQLMapperExpressionBuilder
                 $propertyType = $property->getType()->getName();
                 $this->buildExpressions($property->getName(), $propertyType, $targetEntity, $alias, $propertyJoinType);
             } else {
-                $properties[] = new DQLProperty($matchingProperty->getName(), $property->getName());
+                $callbacks = array_filter($property->getAttributes(), fn (\ReflectionAttribute $attr) => $attr->newInstance() instanceof MappingCallback);
+                $properties[] = new DQLProperty($matchingProperty->getName(), $property->getName(), $callbacks);
             }
         }
 

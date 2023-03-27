@@ -17,8 +17,7 @@ class GetEntityConstructorMapperTest extends TestCase
     public function testGetEntityConstructorMapperHandler(): void
     {
         $handler = new GetEntityConstructorMapperHandler();
-        $function = function () {throw new \LogicException('This should not be called'); };
-        eval($handler(
+        $function = eval($handler(
             new GetEntityConstructorMapper(
                 User::class,
                 UserRegistrationData::class

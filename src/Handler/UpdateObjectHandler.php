@@ -41,8 +41,7 @@ class UpdateObjectHandler
 
         $this->_em->getConnection()->beginTransaction();
         try {
-            $function = function (object $entity, object $object): void {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, false, is_array($message->object))));
+            $function = eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, false, is_array($message->object))));
             $function($entity, $message->object);
 
             $this->_em->persist($entity);

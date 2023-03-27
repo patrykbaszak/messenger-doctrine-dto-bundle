@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Handler;
 
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use PBaszak\MessengerDoctrineDTOBundle\Contract\GetObjects;
@@ -34,57 +35,101 @@ class GetObjectsHandler
     {
         $outputClass = $message->instanceOf;
 
-        $dql = $this->handle(new GetDTODQL($outputClass));
-        if (null !== $message->criteria) {
-            $expression = $message->criteria->getWhereExpression();
-            $output = $expression?->visit(new SqlExpressionVisitor($dql));
-
-            if (null !== $output) {
-                $dql .= ' WHERE '.$output;
-            }
-        }
+        [$dql, $mapper] = $this->handle(new GetDTODQL($outputClass));
+        $dql = $this->applyCriteriaToDQL($dql, $message->criteria);
 
         $query = $this->_em->createQuery($dql);
+        $this->applyCriteriaToQuery($query, $message->criteria);
         $output = $query->execute(null, Query::HYDRATE_ARRAY);
+        $function = eval($mapper);
 
         if ($message->arrayHydration) {
-            return array_map(fn (array $item) => $this->nestKeys($item), $output);
+            return array_map(fn (array $item) => $function($item), $output);
         }
 
         return array_map(
             fn (array $item) => $this->denormalizer->denormalize(
-                $this->nestKeys($item),
+                $function($item),
                 $outputClass
             ),
             $output
         );
     }
 
-    /**
-     * @param array<string,mixed> $inputArray
-     *
-     * @return array<string,mixed>
-     */
-    public function nestKeys(array $inputArray): array
+    private function normalizeFieldName(string $fieldName, string $dql): string
     {
-        $outputArray = [];
+        $pattern = '/(\w+\.'.preg_quote($fieldName, '/').')/';
+        preg_match($pattern, $dql, $matches);
 
-        foreach ($inputArray as $key => $value) {
-            $keys = explode('__', (string) $key);
-            /** @var array<string,mixed> $nestedArray */
-            $nestedArray = &$outputArray;
-
-            foreach ($keys as $innerKey) {
-                /** @var string $innerKey */
-                if (!isset($nestedArray[$innerKey])) {
-                    $nestedArray[$innerKey] = [];
-                }
-                $nestedArray = &$nestedArray[$innerKey];
-            }
-
-            $nestedArray = $value;
+        if (isset($matches[1])) {
+            return $matches[1];
         }
 
-        return $outputArray;
+        return $fieldName;
+    }
+
+    private function applyCriteriaToDQL(string $dql, ?Criteria $criteria): string
+    {
+        if (null === $criteria) {
+            return $dql;
+        }
+
+        $dql = $this->applyWhereToDQL($dql, $criteria);
+        $dql = $this->applyOrderByToDQL($dql, $criteria);
+
+        return $dql;
+    }
+
+    private function applyCriteriaToQuery(Query $query, ?Criteria $criteria): void
+    {
+        if (null === $criteria) {
+            return;
+        }
+
+        $this->applyLimitToDQL($query, $criteria);
+        $this->applyOffsetToDQL($query, $criteria);
+    }
+
+    private function applyWhereToDQL(string $dql, Criteria $criteria): string
+    {
+        $expression = $criteria->getWhereExpression();
+        $where = $expression?->visit(new SqlExpressionVisitor($dql));
+        if (null !== $where) {
+            $dql .= ' WHERE '.$where;
+        }
+
+        return $dql;
+    }
+
+    private function applyOrderByToDQL(string $dql, Criteria $criteria): string
+    {
+        $orderBy = $criteria->getOrderings();
+        if (!empty($orderBy)) {
+            $dql .= ' ORDER BY '.implode(', ', array_map(
+                fn (string $key, string $value) => $this->normalizeFieldName($key, $dql).' '.$value,
+                array_keys($orderBy),
+                $orderBy
+            ));
+        }
+
+        return $dql;
+    }
+
+    private function applyLimitToDQL(Query $query, Criteria $criteria): void
+    {
+        if (null === ($limit = $criteria->getMaxResults())) {
+            return;
+        }
+
+        $query->setMaxResults($limit);
+    }
+
+    private function applyOffsetToDQL(Query $query, Criteria $criteria): void
+    {
+        if (null === ($offset = $criteria->getFirstResult())) {
+            return;
+        }
+
+        $query->setFirstResult($offset);
     }
 }

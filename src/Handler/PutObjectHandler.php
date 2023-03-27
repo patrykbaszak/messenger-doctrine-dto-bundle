@@ -49,16 +49,14 @@ class PutObjectHandler
         try {
             $entityCreated = false;
             if (!isset($entity)) {
-                $function = function (object $object): array {throw new \LogicException('This should not be called'); };
-                eval($this->handle(new GetEntityConstructorMapper($targetEntity, $objectClass, is_array($message->object))));
+                $function = eval($this->handle(new GetEntityConstructorMapper($targetEntity, $objectClass, is_array($message->object))));
                 $entity = new $targetEntity(
                     ...$function($message->object)
                 );
                 $entityCreated = true;
             }
 
-            $function = function (object $entity, object $object): void {throw new \LogicException('This should not be called'); };
-            eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, $entityCreated, is_array($message->object))));
+            $function = eval($this->handle(new GetEntityMapper($targetEntity, $objectClass, $entityCreated, is_array($message->object))));
             $function($entity, $message->object);
 
             $id = $this->getIdentifier($entity);

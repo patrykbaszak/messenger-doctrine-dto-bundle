@@ -59,4 +59,30 @@ class DQLExpression
 
         return $output;
     }
+
+    /**
+     * @return DQLProperty[]
+     */
+    public function getPropertiesWithOutputNames(): array
+    {
+        if (!$this->parentAlias) {
+            foreach ($this->properties as $property) {
+                if ($property->outputName) {
+                    $property->path = $property->outputName;
+                } else {
+                    $property->path = $property->name;
+                }
+            }
+        } else {
+            foreach ($this->properties as $property) {
+                if ($property->outputName) {
+                    $property->path = $this->alias.'__'.$property->outputName;
+                } else {
+                    $property->path = $this->alias.'__'.$property->name;
+                }
+            }
+        }
+
+        return $this->properties;
+    }
 }
