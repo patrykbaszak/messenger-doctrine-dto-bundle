@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Contract;
 
+use Doctrine\ORM\EntityNotFoundException;
+
 /**
  * Delete entity from database.
+ *
+ * @throws EntityNotFoundException if entity with given id does not exist
  */
 class DeleteObject
 {

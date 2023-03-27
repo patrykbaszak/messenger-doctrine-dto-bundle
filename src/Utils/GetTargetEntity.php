@@ -25,4 +25,37 @@ trait GetTargetEntity
 
         return $attributes[0]->newInstance()->entityClass;
     }
+
+    protected function getTargetEntityIfIsDeclared(string|\ReflectionProperty|\ReflectionParameter $property): ?string
+    {
+        if (is_string($property)) {
+            return null;
+        }
+
+        $targetEntity = $property->getAttributes(TargetEntity::class);
+
+        if (empty($targetEntity)) {
+            $reflectionType = $property->getType();
+
+            if ($reflectionType instanceof \ReflectionNamedType) {
+                $type = $reflectionType->getName();
+
+                if (class_exists($type)) {
+                    $reflectionClass = new \ReflectionClass($type);
+                    $entity = $reflectionClass->getAttributes(Entity::class);
+                    $targetEntity = $reflectionClass->getAttributes(TargetEntity::class);
+
+                    if (empty($entity) && empty($targetEntity)) {
+                        return null;
+                    }
+
+                    return $type;
+                }
+            }
+
+            return null;
+        }
+
+        return $targetEntity[0]->newInstance()->entityClass;
+    }
 }

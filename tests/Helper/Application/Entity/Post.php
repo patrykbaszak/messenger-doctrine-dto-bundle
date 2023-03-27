@@ -24,8 +24,8 @@ class Post
     #[ORM\Column(type: 'text')]
     public string $content;
 
-    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'post')]
-    public Collection $likes;
+    // #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'post')]
+    // public Collection $likes;
 
     #[ORM\Column(type: 'datetime')]
     public \DateTimeInterface $createdAt;
@@ -38,7 +38,7 @@ class Post
         $this->id = Uuid::v4()->toRfc4122();
         $this->author = $author;
         $this->content = $content;
-        $this->likes = new ArrayCollection();
+        // $this->likes = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 }

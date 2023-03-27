@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Mapper;
 
-use Doctrine\ORM\Mapping\Entity;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertiesIfNull;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\IgnorePropertyIfNull;
-use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetEntity;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetProperty;
 use PBaszak\MessengerDoctrineDTOBundle\Contract\PutObject;
+use PBaszak\MessengerDoctrineDTOBundle\Utils\FindMatchingProperty;
+use PBaszak\MessengerDoctrineDTOBundle\Utils\GetTargetEntity;
 
 class EntityMapperExpressionBuilder
 {
+    use FindMatchingProperty;
+    use GetTargetEntity;
+
     /** Property access templates */
     private const ARRAY_PROPERTY_TEMPLATE = '$%s[\'%s\']';
     private const PUBLIC_PROPERTY_TEMPLATE = '$%s%s%s';
@@ -218,51 +221,6 @@ class EntityMapperExpressionBuilder
         );
     }
 
-    private function findMatchingProperty(\ReflectionClass $propertySource, \ReflectionClass $propertyTarget, string|\ReflectionProperty|\ReflectionParameter $property): null|\ReflectionProperty // + maybe string|\ReflectionParameter
-    {
-        /* Check is property exists in source class */
-        if (!in_array($property, $propertySource->getProperties()) && !in_array($property, ($constructor = $propertySource->getConstructor()) ? $constructor->getParameters() : [])) {
-            throw new \LogicException(sprintf('Property %s not found in class %s', is_string($property) ? $property : $property->getName(), $propertySource->getName()));
-        }
-
-        /* If given property is just a string we can only search for same name in target class */
-        if (is_string($property)) {
-            return $propertyTarget->getProperty($property) ?: throw new \LogicException(sprintf('Property %s not found in class %s.', $property, $propertyTarget->getName()));
-        }
-
-        /* If TargetProperty attribute is declared in incoming property */
-        if (!empty($targetPropertyAttr = $property->getAttributes(TargetProperty::class))) {
-            $targetPropertyName = $targetPropertyAttr[0]->newInstance()->name;
-            $targetProperty = $propertyTarget->getProperty($targetPropertyName);
-            if (!$targetProperty) {
-                throw new \LogicException(sprintf('Property %s not found in class %s.', $targetPropertyName, $propertyTarget->getName()));
-            }
-
-            return $targetProperty;
-        }
-
-        /* Looking for matching property in target */
-        foreach ($propertyTarget->getProperties() as $targetProperty) {
-            if ($targetProperty->getName() === $property->getName()) {
-                return $targetProperty;
-            }
-
-            if (!empty($targetPropertyAttr = $targetProperty->getAttributes(TargetProperty::class))) {
-                $targetPropertyName = $targetPropertyAttr[0]->newInstance()->name;
-                if ($targetPropertyName === $property->getName()) {
-                    return $targetProperty;
-                }
-            }
-        }
-
-        /* If searched property is optional constructor parameter so we don't need looking for matching property and can accept this situation */
-        if ($property instanceof \ReflectionParameter && $property->isOptional()) {
-            return null;
-        }
-
-        throw new \LogicException(sprintf('Property %s not found in class %s.', $property->getName(), $propertyTarget->getName()));
-    }
-
     private function getTargetPropertyAttrIfEntityIsDeclared(string|\ReflectionProperty|\ReflectionParameter $property): ?TargetProperty
     {
         if (is_string($property)) {
@@ -279,39 +237,6 @@ class EntityMapperExpressionBuilder
         }
 
         return $targetPropertyAttr;
-    }
-
-    private function getTargetEntityIfIsDeclared(string|\ReflectionProperty|\ReflectionParameter $property): ?string
-    {
-        if (is_string($property)) {
-            return null;
-        }
-
-        $targetEntity = $property->getAttributes(TargetEntity::class);
-
-        if (empty($targetEntity)) {
-            $reflectionType = $property->getType();
-
-            if ($reflectionType instanceof \ReflectionNamedType) {
-                $type = $reflectionType->getName();
-
-                if (class_exists($type)) {
-                    $reflectionClass = new \ReflectionClass($type);
-                    $entity = $reflectionClass->getAttributes(Entity::class);
-                    $targetEntity = $reflectionClass->getAttributes(TargetEntity::class);
-
-                    if (empty($entity) && empty($targetEntity)) {
-                        return null;
-                    }
-
-                    return $type;
-                }
-            }
-
-            return null;
-        }
-
-        return $targetEntity[0]->newInstance()->entityClass;
     }
 
     private function getPutEntityExpression(string $sourceVariableName, string|\ReflectionProperty $property, string $targetObjectClass): string

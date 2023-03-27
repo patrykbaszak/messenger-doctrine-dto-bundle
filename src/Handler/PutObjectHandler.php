@@ -74,6 +74,7 @@ class PutObjectHandler
         --self::$initialized;
         if (0 === self::$initialized) {
             $this->_em->flush();
+            $this->_em->getConnection()->commit();
             self::$persistedEntities = [];
         }
 

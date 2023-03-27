@@ -14,8 +14,13 @@ namespace PBaszak\MessengerDoctrineDTOBundle\Attribute;
 #[\Attribute(\Attribute::TARGET_CLASS | \Attribute::TARGET_PROPERTY)]
 class TargetEntity
 {
+    /**
+     * @param class-string $entityClass
+     * @param string       $joinType    Only used for getting data
+     */
     public function __construct(
-        public readonly string $entityClass
+        public readonly string $entityClass,
+        public readonly string $joinType = 'LEFT'
     ) {
     }
 }

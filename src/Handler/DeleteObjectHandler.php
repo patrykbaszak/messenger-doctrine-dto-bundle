@@ -41,6 +41,7 @@ class DeleteObjectHandler
         try {
             $this->_em->remove($entity);
             $this->_em->flush();
+            $this->_em->getConnection()->commit();
         } catch (\Throwable $e) {
             $this->_em->getConnection()->rollBack();
             throw $e;

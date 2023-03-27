@@ -47,6 +47,7 @@ class UpdateObjectHandler
 
             $this->_em->persist($entity);
             $this->_em->flush();
+            $this->_em->getConnection()->commit();
         } catch (\Throwable $e) {
             $this->_em->getConnection()->rollBack();
             throw $e;
