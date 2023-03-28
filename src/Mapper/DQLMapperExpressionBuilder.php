@@ -137,6 +137,8 @@ class DQLMapperExpressionBuilder
                 /** @var class-string<object> $propertyType */
                 $propertyType = $property->getType()->getName();
                 $this->buildExpressions($property->getName(), $propertyType, $targetEntity, $alias, $propertyJoinType);
+            } elseif (null !== ($targetEntityCollection = $this->getTargetEntityAndRelationFromProperty($property))) {
+                // do nothing
             } else {
                 $callbacks = array_filter($property->getAttributes(), fn (\ReflectionAttribute $attr) => $attr->newInstance() instanceof MappingCallback);
                 $properties[] = new DQLProperty($matchingProperty->getName(), $property->getName(), $callbacks);

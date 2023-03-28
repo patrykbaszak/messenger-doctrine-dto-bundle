@@ -4,7 +4,12 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Utils;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\ManyToMany;
+use Doctrine\ORM\Mapping\ManyToOne;
+use Doctrine\ORM\Mapping\OneToMany;
+use Doctrine\ORM\Mapping\OneToOne;
 use PBaszak\MessengerDoctrineDTOBundle\Attribute\TargetEntity;
 
 trait GetTargetEntity
@@ -33,29 +38,74 @@ trait GetTargetEntity
         }
 
         $targetEntity = $property->getAttributes(TargetEntity::class);
+        if (!empty($targetEntity)) {
+            return $targetEntity[0]->newInstance()->entityClass;
+        }
 
-        if (empty($targetEntity)) {
-            $reflectionType = $property->getType();
-
-            if ($reflectionType instanceof \ReflectionNamedType) {
-                $type = $reflectionType->getName();
-
-                if (class_exists($type)) {
-                    $reflectionClass = new \ReflectionClass($type);
-                    $entity = $reflectionClass->getAttributes(Entity::class);
-                    $targetEntity = $reflectionClass->getAttributes(TargetEntity::class);
-
-                    if (empty($entity) && empty($targetEntity)) {
-                        return null;
-                    }
-
-                    return $type;
-                }
-            }
-
+        $reflectionType = $property->getType();
+        if (!$reflectionType instanceof \ReflectionNamedType) {
             return null;
         }
 
-        return $targetEntity[0]->newInstance()->entityClass;
+        $type = $reflectionType->getName();
+        if (!class_exists($type)) {
+            return null;
+        }
+
+        $reflectionClass = new \ReflectionClass($type);
+        if ($this->hasClassEntityOrTargetEntityAttributes($reflectionClass)) {
+            return $type;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{relationType: 'manyToMany'|'manyToOne'|'oneToMany'|'oneToOne', targetEntity: class-string|null}|null
+     */
+    protected function getTargetEntityAndRelationFromProperty(string|\ReflectionProperty|\ReflectionParameter $property): ?array
+    {
+        if (is_string($property)) {
+            return null;
+        }
+
+        $reflectionType = $property->getType();
+        if (!$reflectionType instanceof \ReflectionNamedType) {
+            return null;
+        }
+
+        $type = $reflectionType->getName();
+        if (!is_a($type, Collection::class, true)) {
+            return null;
+        }
+
+        $relationAttributeClasses = [
+            'manyToOne' => ManyToOne::class,
+            'manyToMany' => ManyToMany::class,
+            'oneToMany' => OneToMany::class,
+            'oneToOne' => OneToOne::class,
+        ];
+
+        foreach ($relationAttributeClasses as $relationType => $attributeClass) {
+            $attribute = $property->getAttributes($attributeClass);
+            if (!empty($attribute)) {
+                $instance = $attribute[0]->newInstance();
+
+                return [
+                    'relationType' => $relationType,
+                    'targetEntity' => $instance->targetEntity,
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    private function hasClassEntityOrTargetEntityAttributes(\ReflectionClass $reflectionClass): bool
+    {
+        $entity = $reflectionClass->getAttributes(Entity::class);
+        $targetEntity = $reflectionClass->getAttributes(TargetEntity::class);
+
+        return !empty($entity) || !empty($targetEntity);
     }
 }

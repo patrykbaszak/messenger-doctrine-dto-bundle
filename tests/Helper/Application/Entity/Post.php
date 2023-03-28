@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PBaszak\MessengerDoctrineDTOBundle\Tests\Helper\Application\Entity;
 
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,8 +27,8 @@ class Post
     #[ORM\Column(type: 'text')]
     public string $content;
 
-    // #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'post')]
-    // public Collection $likes;
+    #[ORM\OneToMany(targetEntity: Like::class, mappedBy: 'post')]
+    public Collection $likes;
 
     #[ORM\Column(type: 'datetime')]
     #[DateTimeFormat(\DateTime::ISO8601_EXPANDED)]
@@ -44,7 +43,7 @@ class Post
         $this->id = Uuid::v4()->toRfc4122();
         $this->author = $author;
         $this->content = $content;
-        // $this->likes = new ArrayCollection();
+        $this->likes = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
     }
 }
