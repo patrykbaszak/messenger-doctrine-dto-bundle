@@ -54,7 +54,7 @@ trait GetTargetEntity
 
         $reflectionClass = new \ReflectionClass($type);
         if ($this->hasClassEntityOrTargetEntityAttributes($reflectionClass)) {
-            return $type;
+            return $this->getTargetEntity($type);
         }
 
         return null;

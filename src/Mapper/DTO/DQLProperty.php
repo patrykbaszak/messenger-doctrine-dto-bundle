@@ -13,6 +13,7 @@ class DQLProperty
         public readonly string $name,
         ?string $outputName = null,
         public readonly array $callbacks = [],
+        public readonly ?string $customExpression = null,
     ) {
         $this->outputName = $name === $outputName ? null : $outputName;
     }

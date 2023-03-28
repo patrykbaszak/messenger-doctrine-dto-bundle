@@ -45,7 +45,9 @@ class PutObjectHandler
             $entity = $message->object;
         }
 
-        $this->_em->getConnection()->beginTransaction();
+        if (1 === self::$initialized) {
+            $this->_em->beginTransaction();
+        }
         try {
             $entityCreated = false;
             if (!isset($entity)) {
@@ -65,14 +67,14 @@ class PutObjectHandler
                 self::$persistedEntities[$id] = $entity;
             }
         } catch (\Throwable $e) {
-            $this->_em->getConnection()->rollBack();
+            $this->_em->rollBack();
             throw $e;
         }
 
         --self::$initialized;
         if (0 === self::$initialized) {
             $this->_em->flush();
-            $this->_em->getConnection()->commit();
+            $this->_em->commit();
             self::$persistedEntities = [];
         }
 
