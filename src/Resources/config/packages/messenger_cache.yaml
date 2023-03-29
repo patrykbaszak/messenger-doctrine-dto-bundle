@@ -7,8 +7,6 @@ framework:
 messenger_cache:
     pools:
         messenger_doctrine_dto.mapper: messenger_doctrine_dto.mapper
-    decorated_message_buses:
-        - cachedMessage.bus
 
 services:
     messenger_doctrine_dto.cache.adapter.php_files:

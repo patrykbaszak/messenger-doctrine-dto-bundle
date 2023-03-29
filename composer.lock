@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dd5426a5f8de5a041c64bce8af80091e",
+    "content-hash": "9ca169e9aaab3e65375ad9571cd54415",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1393,16 +1393,16 @@
         },
         {
             "name": "pbaszak/messenger-cache-bundle",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/patrykbaszak/messenger-cache-bundle.git",
-                "reference": "7cb5297c02d5ea6e90186c9740743ee1218ddc11"
+                "reference": "a3df4a5bdf97124f1b5c24abca810c9d1c32a397"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/patrykbaszak/messenger-cache-bundle/zipball/7cb5297c02d5ea6e90186c9740743ee1218ddc11",
-                "reference": "7cb5297c02d5ea6e90186c9740743ee1218ddc11",
+                "url": "https://api.github.com/repos/patrykbaszak/messenger-cache-bundle/zipball/a3df4a5bdf97124f1b5c24abca810c9d1c32a397",
+                "reference": "a3df4a5bdf97124f1b5c24abca810c9d1c32a397",
                 "shasum": ""
             },
             "require": {
@@ -1444,9 +1444,9 @@
             ],
             "support": {
                 "issues": "https://github.com/patrykbaszak/messenger-cache-bundle/issues",
-                "source": "https://github.com/patrykbaszak/messenger-cache-bundle/tree/1.4.0"
+                "source": "https://github.com/patrykbaszak/messenger-cache-bundle/tree/1.4.1"
             },
-            "time": "2023-03-29T14:23:55+00:00"
+            "time": "2023-03-29T14:37:49+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",

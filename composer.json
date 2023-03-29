@@ -6,6 +6,7 @@
         "doctrine/doctrine-bundle": "^2.8",
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/orm": "^2.14",
+        "pbaszak/messenger-cache-bundle": ">=1.4.1",
         "symfony/console": "6.2.*",
         "symfony/doctrine-bridge": "6.2.*",
         "symfony/cache": ">=6.2",
@@ -15,7 +16,6 @@
         "symfony/messenger": ">=6.2",
         "symfony/uid": "^6.2",
         "symfony/runtime": "^6.2",
-        "pbaszak/messenger-cache-bundle": "^1.2",
         "symfony/serializer": "^6.2",
         "symfony/serializer-pack": "^1.2"
     },
