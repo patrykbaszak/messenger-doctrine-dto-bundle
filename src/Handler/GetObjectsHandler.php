@@ -25,9 +25,9 @@ class GetObjectsHandler
     public function __construct(
         private EntityManagerInterface $_em,
         private DenormalizerInterface $denormalizer,
-        MessageBusInterface $messageBus,
+        MessageBusInterface $cachedMessageBus,
     ) {
-        $this->messageBus = $messageBus;
+        $this->messageBus = $cachedMessageBus;
     }
 
     /** @return mixed[] */

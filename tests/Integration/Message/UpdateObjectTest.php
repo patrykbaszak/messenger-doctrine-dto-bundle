@@ -26,7 +26,7 @@ class UpdateObjectTest extends KernelTestCase
 
     protected function setUp(): void
     {
-        $this->messageBus = self::getContainer()->get('messenger.bus.default');
+        $this->messageBus = self::getContainer()->get('cachedMessage.bus');
         $this->_em = self::getContainer()->get('doctrine.orm.entity_manager');
     }
 

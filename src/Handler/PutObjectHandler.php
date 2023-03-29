@@ -27,9 +27,9 @@ class PutObjectHandler
 
     public function __construct(
         private EntityManagerInterface $_em,
-        MessageBusInterface $messageBus,
+        MessageBusInterface $cachedMessageBus,
     ) {
-        $this->messageBus = $messageBus;
+        $this->messageBus = $cachedMessageBus;
     }
 
     public function __invoke(PutObject $message): object

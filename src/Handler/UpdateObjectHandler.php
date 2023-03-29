@@ -23,9 +23,9 @@ class UpdateObjectHandler
 
     public function __construct(
         private EntityManagerInterface $_em,
-        MessageBusInterface $messageBus,
+        MessageBusInterface $cachedMessageBus,
     ) {
-        $this->messageBus = $messageBus;
+        $this->messageBus = $cachedMessageBus;
     }
 
     public function __invoke(UpdateObject $message): object
