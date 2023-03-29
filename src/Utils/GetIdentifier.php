@@ -11,8 +11,6 @@ trait GetIdentifier
         'getUuid',
         'id',
         'uuid',
-        '__get',
-        '__call',
         'getIdentifier',
     ];
 
@@ -40,6 +38,22 @@ trait GetIdentifier
                     return $result;
                 }
             }
+        }
+
+        if (method_exists($data, '__get')) {
+            return $data->__get('id')
+                ?? $data->__get('uuid')
+                ?? $data->__get('identifier')
+                ?? null;
+        }
+
+        if (method_exists($data, '__call')) {
+            return $data->__call('getId', [])
+                ?? $data->__call('id', [])
+                ?? $data->__call('getUuid', [])
+                ?? $data->__call('uuid', [])
+                ?? $data->__call('getIdentifier', [])
+                ?? null;
         }
 
         return null;
